@@ -50,7 +50,7 @@ npm run build
 
 ### Run production
 
-To build the application for production, run:
+To build and run the application for production, run ([http://localhost:4000/en/](http://localhost:4000/en/)):
 
 ```bash
 npm run serve:run
