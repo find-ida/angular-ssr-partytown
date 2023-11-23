@@ -50,18 +50,6 @@ function addGoogleTagReverseProxy(server) {
   });
 }
 
-function addPartyTownReverseProxy(server) {
-  server.use('/~partytown', (req, res, next) => {
-    const proxy = createProxyMiddleware({
-      target: `${req.protocol}://${req.get('host')}`,
-      pathRewrite: {'^/~partytown': `/en/~partytown`},
-      changeOrigin: true,
-      // logLevel: 'silent'
-    });
-    proxy(req, res, next);
-  });
-}
-
 function getLanguage(req) {
   return LOCALES[0];
 }

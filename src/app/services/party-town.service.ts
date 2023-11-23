@@ -4,6 +4,7 @@ import {
   inject,
   Injectable,
   InjectionToken,
+  LOCALE_ID,
   makeEnvironmentProviders,
   PLATFORM_ID,
 } from '@angular/core';
@@ -27,6 +28,7 @@ export type PartyTownConfig = {
     enabled: boolean;
     debug?: boolean;
     basePath?: string;
+    locale?: string;
     forward?: string[];
     proxyUri?: string;
     proxiedHosts?: string[];
@@ -53,6 +55,7 @@ const PARTY_TOWN_CONFIG = new InjectionToken<PartyTownConfig>('partyTownConfig')
  *      enabled - Determines if PartyTown should be enabled. Required.
  *      debug - Enables debug mode for PartyTown.
  *      basePath - Base path for PartyTown.
+ *      locale - BasePath url prefix for i18n
  *      forward - Array of strings to forward to PartyTown.
  *      proxyUri - URI for the proxy used by PartyTown.
  *      proxiedHosts - Array of hosts that should be proxied.
@@ -74,6 +77,7 @@ const PARTY_TOWN_CONFIG = new InjectionToken<PartyTownConfig>('partyTownConfig')
  *     enabled: true, // Required
  *     debug: false, // Default
  *     basePath: '/~partytown', // Default
+ *     locale: LOCALE_ID, // Default
  *     forward: ['dataLayer.push', 'fbq'], // Default
  *     proxyUri: '/gtm', // Default
  *     proxiedHosts: [
@@ -98,6 +102,7 @@ export const providePartyTown = (config: PartyTownConfig): EnvironmentProviders 
         ...config.partyTown,
         debug: config.partyTown?.debug ?? false,
         basePath: config.partyTown?.basePath ?? '/~partytown',
+        locale: config.partyTown?.locale ?? inject(LOCALE_ID),
         forward: config.partyTown?.forward ?? ['dataLayer.push', "fbq"],
         proxyUri: config.partyTown?.proxyUri ?? "/gtm",
         proxiedHosts: config.partyTown?.proxiedHosts ?? [
@@ -147,7 +152,7 @@ export class PartyTownService {
   }
 
   injectScript() {
-    if (!this.config) throw new Error(`PartyTown was not provided, please add 'providePartyTown() to your root providers first.'.`);
+    if (!this.config?.partyTown) throw new Error(`PartyTown was not provided, please add 'providePartyTown() to your root providers first.'.`);
     this.initPartyTownScript();
     this.initGtmScript();
   }
@@ -164,6 +169,7 @@ export class PartyTownService {
     // Config Script
     const partyTownConfigurationScript = document.createElement('script');
     partyTownConfigurationScript.textContent = `partytown = {
+      lib: "/${config.locale}${config.basePath}/",
       debug: ${config.debug ?? false},
       forward: ${JSON.stringify(config.forward ?? [])},
       resolveUrl: function (url, location, type) {
@@ -180,7 +186,7 @@ export class PartyTownService {
 
     // Lib Script
     const partyTownLibScript = document.createElement('script');
-    partyTownLibScript.src = `${config.basePath ?? ''}/${this.config.partyTown?.debug ? 'debug/' : ''}partytown.js`;
+    partyTownLibScript.src = `/${config.locale}${config.basePath}/partytown.js`;
     // Attach partyTown script
     this.document.head.appendChild(partyTownLibScript);
   }
